@@ -1,0 +1,46 @@
+
+name: Build Rayan Garden Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Flutter source
+        run: |
+          mkdir app
+          unzip -q Rayan-Garden-App-Source-For-GitHub.zip -d app
+          find app -name pubspec.yaml
+
+      - name: Locate Flutter project
+        run: |
+          PROJECT_DIR=$(dirname "$(find app -name pubspec.yaml | head -n 1)")
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Build APK
+        run: |
+          cd "$PROJECT_DIR"
+          flutter pub get
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rayan-Garden-Android-APK
+          path: app/**/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          
