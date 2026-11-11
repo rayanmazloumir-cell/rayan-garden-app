@@ -1,0 +1,238 @@
+name: Build Rayan Garden Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rayan-garden-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  LOG_DIR: ${{ github.workspace }}/ci-logs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare log folder
+        run: mkdir -p "$LOG_DIR"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Rule 1: Flutter source already in the repository root -> use it directly,
+      #         ZIP files are ignored (no extraction).
+      # Rule 2: otherwise pick Rayan-Garden-Fixed.zip or "Rayan-Garden-Fixed (N).zip"
+      #         (also GitHub-renamed variants such as Rayan-Garden-Fixed.(N).zip).
+      #         Highest N first; a candidate is accepted only if it really contains
+      #         the Rayan Garden project (pubspec name: rayan_garden + lib/main.dart).
+      - name: Locate the project
+        run: |
+          {
+            is_project() {
+              [ -f "$1/pubspec.yaml" ] \
+                && grep -Eq '^name:[[:space:]]*rayan_garden[[:space:]]*$' "$1/pubspec.yaml" \
+                && [ -f "$1/lib/main.dart" ]
+            }
+
+            if is_project "$GITHUB_WORKSPACE"; then
+              echo "Flutter source found in the repository root: using it directly (ZIP files are ignored)."
+              PROJECT_DIR="$GITHUB_WORKSPACE"
+            else
+              echo "No Rayan Garden source in the repository root; looking for a ZIP."
+              CANDS=()
+              while IFS= read -r -d '' f; do
+                base="$(basename "$f")"
+                if [[ "$base" =~ ^Rayan-Garden-Fixed([\ ._-]*\(?([0-9]+)\)?)?\.zip$ ]]; then
+                  CANDS+=("${BASH_REMATCH[2]:-0}|$f")
+                fi
+              done < <(find . -maxdepth 3 -type f -iname 'Rayan-Garden-Fixed*.zip' -not -path './.git/*' -print0)
+
+              if [ "${#CANDS[@]}" -eq 0 ]; then
+                echo "::error::No Rayan-Garden-Fixed.zip (or 'Rayan-Garden-Fixed (N).zip') found. Upload the ZIP to the repository root, or put the project files in the root."
+                ls -la
+                exit 1
+              fi
+
+              echo "ZIP candidates (number|path):"
+              printf '  %s\n' "${CANDS[@]}"
+
+              PROJECT_DIR=""
+              i=0
+              while IFS= read -r entry; do
+                i=$((i+1))
+                zip="${entry#*|}"
+                dest="$RUNNER_TEMP/rg_src_$i"
+                rm -rf "$dest" && mkdir -p "$dest"
+                if ! unzip -oq "$zip" -d "$dest"; then
+                  echo "Skipping '$zip': cannot be unzipped."
+                  continue
+                fi
+                pub="$(find "$dest" -type f -name pubspec.yaml -not -path '*/.dart_tool/*' -not -path '*/build/*' -not -path '*/__MACOSX/*' | awk -F/ '{print NF" "$0}' | sort -n | head -n 1 | cut -d' ' -f2-)"
+                if [ -n "$pub" ] && is_project "$(dirname "$pub")"; then
+                  PROJECT_DIR="$(dirname "$pub")"
+                  echo "Selected ZIP: $zip"
+                  break
+                fi
+                echo "Skipping '$zip': it does not contain the Rayan Garden project."
+              done < <(printf '%s\n' "${CANDS[@]}" | sort -t'|' -k1,1nr -k2,2)
+
+              if [ -z "$PROJECT_DIR" ]; then
+                echo "::error::None of the ZIP files contains the Rayan Garden project (pubspec name: rayan_garden + lib/main.dart)."
+                exit 1
+              fi
+            fi
+
+            for p in lib assets pubspec.yaml; do
+              if [ ! -e "$PROJECT_DIR/$p" ]; then
+                echo "::error::'$p' is missing from the project."
+                exit 1
+              fi
+            done
+            echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+            echo "Project directory: $PROJECT_DIR"
+            ls -la "$PROJECT_DIR"
+          } 2>&1 | tee "$LOG_DIR/01-locate.log"
+
+      - name: Verify the original logo and images are unchanged
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          {
+            if [ -f tool/assets.sha256 ]; then
+              sha256sum -c tool/assets.sha256
+            else
+              echo "tool/assets.sha256 not found - skipping integrity check."
+            fi
+          } 2>&1 | tee "$LOG_DIR/02-assets.log"
+
+      - name: Generate Android project (only if missing)
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          {
+            flutter --version
+            BK="$RUNNER_TEMP/backup"
+            rm -rf "$BK" && mkdir -p "$BK"
+            cp -r lib "$BK/lib"
+            cp -r assets "$BK/assets"
+            cp pubspec.yaml "$BK/pubspec.yaml"
+            [ -d test ] && cp -r test "$BK/test" || true
+            [ -f analysis_options.yaml ] && cp analysis_options.yaml "$BK/analysis_options.yaml" || true
+
+            if [ -f android/app/build.gradle ] || [ -f android/app/build.gradle.kts ]; then
+              echo "android folder already exists - skipping flutter create."
+            else
+              flutter create --platforms=android --org com.rayangarden --project-name rayan_garden .
+            fi
+
+            # Restore the app's own files in case the generator touched them.
+            rm -rf lib assets
+            cp -r "$BK/lib" lib
+            cp -r "$BK/assets" assets
+            cp "$BK/pubspec.yaml" pubspec.yaml
+            if [ -d "$BK/test" ]; then rm -rf test && cp -r "$BK/test" test; fi
+            if [ -f "$BK/analysis_options.yaml" ]; then cp "$BK/analysis_options.yaml" analysis_options.yaml; fi
+            # The generated sample test refers to a class that does not exist here.
+            if [ -f test/widget_test.dart ] && grep -q 'MyApp' test/widget_test.dart; then
+              rm test/widget_test.dart
+            fi
+
+            if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ]; then
+              echo "::error::android/app/build.gradle(.kts) is missing after flutter create."
+              exit 1
+            fi
+          } 2>&1 | tee "$LOG_DIR/03-android-generate.log"
+
+      - name: Patch Android (name, internet, link visibility, icons)
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          {
+            python3 tool/patch_android.py .
+            cat android/app/src/main/AndroidManifest.xml
+          } 2>&1 | tee "$LOG_DIR/04-android-patch.log"
+
+      - name: Get dependencies
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter pub get 2>&1 | tee "$LOG_DIR/05-pub-get.log"
+
+      # If analyze or the tests fail, the job stops here and the APK is NOT built.
+      # Analyze fails on errors only (infos/warnings are reported but not fatal).
+      - name: Analyze
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee "$LOG_DIR/06-analyze.log"
+
+      - name: Run tests
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter test --reporter expanded 2>&1 | tee "$LOG_DIR/07-test.log"
+
+      - name: Build release APK
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter build apk --release 2>&1 | tee "$LOG_DIR/08-build-apk.log"
+
+      - name: Collect APK
+        run: |
+          APK="$PROJECT_DIR/build/app/outputs/flutter-apk/app-release.apk"
+          if [ ! -f "$APK" ]; then
+            echo "::error::APK not found at $APK"
+            find "$PROJECT_DIR/build" -name '*.apk' || true
+            exit 1
+          fi
+          mkdir -p dist
+          cp "$APK" dist/Rayan-Garden.apk
+          ls -lh dist
+
+      - name: Summary of logs
+        if: always()
+        run: |
+          {
+            echo "### Rayan Garden build logs"
+            echo "Full logs: artifact **Rayan-Garden-Logs**."
+            for f in "$LOG_DIR"/*.log; do
+              [ -f "$f" ] || continue
+              echo "<details><summary>$(basename "$f")</summary>"
+              echo
+              echo '```'
+              tail -n 30 "$f"
+              echo '```'
+              echo "</details>"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rayan-Garden-Android-APK
+          path: dist/Rayan-Garden.apk
+          if-no-files-found: error
+
+      # Runs even when an earlier step failed, so the failure can be read.
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rayan-Garden-Logs
+          path: ci-logs/
+          if-no-files-found: warn
