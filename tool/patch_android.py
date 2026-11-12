@@ -28,8 +28,12 @@ if "android.permission.INTERNET" not in xml:
         count=1,
     )
 
-# 3) Package visibility for tel:, mailto: and https: links (url_launcher)
+# 3) Package visibility for geo:, https:, tel: and mailto: links (url_launcher)
 QUERIES = """        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="geo"/>
+        </intent>
+        <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="https"/>
         </intent>
@@ -42,9 +46,9 @@ QUERIES = """        <intent>
             <data android:scheme="mailto"/>
         </intent>
 """
-if 'android:scheme="mailto"' not in xml:
+if 'android:scheme="geo"' not in xml:
     if "<queries>" in xml:
-        xml = xml.replace("<queries>", "<queries>\n" + QUERIES.rstrip("\n"), 1)
+        xml = xml.replace("</queries>", QUERIES + "    </queries>", 1)
     else:
         xml = xml.replace("</manifest>", "    <queries>\n" + QUERIES + "    </queries>\n</manifest>", 1)
 

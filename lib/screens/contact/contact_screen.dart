@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/map_routing.dart';
 import '../../state/app_scope.dart';
 import '../../widgets/common.dart';
 
@@ -71,7 +72,13 @@ class ContactScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: () => openExternal(context, Uri.parse(AppConfig.mapsUrl)),
+            onPressed: () async {
+              final ok = await MapRouting.open();
+              if (!ok && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.tr('map_launch_failed'))));
+              }
+            },
             icon: const Icon(Icons.map_outlined),
             label: Text(state.tr('contact_map')),
           ),
