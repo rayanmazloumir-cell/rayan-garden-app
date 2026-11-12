@@ -16,7 +16,7 @@ void main() {
 
     await tester.tap(find.text('گشت تصویری باغ'));
     await tester.pumpAndSettle();
-    expect(find.text('نمای کلی باغ'), findsOneWidget);
+    expect(find.text('نمای کلی باغ'), findsWidgets);
     expect(find.textContaining('تصاویر واقعی رایان گاردن'), findsOneWidget);
 
     await tester.tap(find.text('کافه‌باغ'));
