@@ -11,8 +11,11 @@ class FakeRepository implements BookingRepository {
   BookingRequest? lastRequest;
 
   static const services = [
-    ServiceItem(id: 1, name: 'عکاسی کودک', durationMinutes: 60),
-    ServiceItem(id: 2, name: 'بازدید'),
+    ServiceItem(id: 1, name: 'عکاسی عروس و داماد'),
+    ServiceItem(id: 2, name: 'عکاسی رسمی'),
+    ServiceItem(id: 3, name: 'عکاسی کودک'),
+    ServiceItem(id: 4, name: 'عکاسی خانوادگی'),
+    ServiceItem(id: 5, name: 'کافه‌گاردن'),
   ];
 
   @override

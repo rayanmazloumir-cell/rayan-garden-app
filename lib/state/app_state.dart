@@ -9,6 +9,7 @@ import '../core/utils/jalali.dart';
 import '../core/utils/validators.dart';
 import '../data/api/api_exception.dart';
 import '../data/models/booking.dart';
+import '../data/models/service_catalog.dart';
 import '../data/models/service_item.dart';
 import '../data/models/slot_time.dart';
 import '../data/repositories/booking_repository.dart';
@@ -57,7 +58,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     try {
       final list = await repository.fetchServices();
-      services = Loadable.success(list);
+      services = Loadable.success(ServiceCatalog.decorate(list));
     } on ApiException catch (e) {
       services = Loadable.failure(e);
     } catch (_) {

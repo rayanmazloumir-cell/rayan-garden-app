@@ -27,10 +27,13 @@ void main() {
     expect(s.slots.data!.map((t) => t.label).toList(), ['06:00', '09:30', '15:00']);
   });
 
-  test('duration comes only from the API, never from a local table', () {
+  test('approved service durations decorate API items without changing IDs', () async {
     final s = make(FakeRepository());
-    expect(s.durationOf(FakeRepository.services[0]), 60);
-    expect(s.durationOf(FakeRepository.services[1]), isNull);
+    await s.loadServices();
+    expect(s.services.data![0].id, 1);
+    expect(s.durationOf(s.services.data![0]), 120);
+    expect(s.durationOf(s.services.data![1]), 180);
+    expect(s.durationOf(s.services.data![2]), 60);
   });
 
   test('submit sends elapsed >= 2500 and stores the confirmed result', () async {
