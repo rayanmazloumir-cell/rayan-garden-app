@@ -275,7 +275,7 @@ class _TourCard extends StatelessWidget {
                   ),
                   child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    child: Icon(Icons.three_d_rotation_rounded, color: Colors.white, size: 19),
+                    child: Icon(Icons.view_in_ar_rounded, color: Colors.white, size: 19),
                   ),
                 ),
               ),
