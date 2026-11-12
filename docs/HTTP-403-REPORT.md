@@ -1,49 +1,60 @@
-# گزارش خطای HTTP 403 در اپ Rayan Garden
+# Verified HTTP 403 report — Rayan Garden Android app
 
-## وضعیت راستی‌آزمایی (صادقانه)
-- علت دقیق ۴۰۳ در این محیط **اثبات‌پذیر نیست**: دسترسی خودکار به rayangarden.com مسدود است (robots) و اینترنت/Flutter هم نیست.
-  پس درخواست واقعی اپ به سرور هرگز از اینجا اجرا نشد و هیچ مدرک مستقیم از سرور (هدر یا بدنه پاسخ ۴۰۳) در دست من نیست.
-- آنچه با بررسی کد **اثبات شد**: آدرس، متد و query اپ با درخواست موفق مرورگر یکسان است (جدول زیر). پس مشکل «آدرس اشتباه» نیست.
-- نتیجه منطقی: چون URL/متد/query یکسان‌اند و مرورگر موفق است، تنها تفاوت‌های ممکن **هدرهای درخواست و اثر انگشت کلاینت** است
-  (بیشترین احتمال: قانون ModSecurity/WAF هاست روی User-Agent یا نبود هدرهای مرورگری). این **فرضیه** است، نه نتیجه قطعی.
+## Verified status
 
-## مقایسه درخواست اپ با مرورگر
-| مورد | مرورگر (موفق) | اپ (کد فعلی) |
-|---|---|---|
-| متد | GET | GET (`api_client.dart`) |
-| services | `https://rayangarden.com/api/services.php` | همان (`AppConfig.apiBase` + `services.php`) |
-| availability | `.../availability.php?date=2026-11-12&service=wedding` | همان؛ `date` به‌صورت `YYYY-MM-DD` و `service` شناسه‌ی سرور |
-| Redirect | — | کتابخانه `http` ریدایرکت GET را دنبال می‌کند؛ آدرس دیگری در کد نیست |
-| آدرس‌های دیگر/قدیمی | — | هیچ؛ در کل `lib/` فقط یک `apiBase` وجود دارد |
-| TLS | معتبر | پیش‌فرض (بدون `badCertificateCallback`) |
-| User-Agent | مرورگر موبایل | `RayanGardenApp/1.0 (Android)` (قبل از این: پیش‌فرض Dart) |
-| سایر هدرها | Accept، Accept-Language، Sec-Fetch-*، کوکی… | فقط `Accept: application/json` |
+On 12 November 2026, the production API was tested read-only from the build environment. The endpoint itself is reachable:
 
-نسخه‌ی قدیمی‌تر اپ (User-Agent پیش‌فرض Dart) هم ۴۰۳ می‌داد؛ یعنی تغییر UA به‌تنهایی مشکل را حل نکرده است.
-از User-Agent جعلی، دور زدن امنیت، غیرفعال‌کردن SSL یا گواهی استفاده **نشد**.
+- `GET https://rayangarden.com/api/services.php` → HTTP 200 JSON
+- `GET https://rayangarden.com/api/availability.php?date=2026-11-15&service=wedding` → HTTP 200 JSON
+- `GET https://rayangarden.com/api/book.php` → HTTP 405 JSON, which is the expected response for an invalid GET method
+- `GET https://rayangarden.com/api/` → HTTP 403 HTML, which is expected directory-access protection and is not the endpoint used by the app
 
-## تغییرات این نسخه (فقط لازم)
-- `lib/data/api/api_client.dart`: پاسخ غیر ۲xx اکنون **درخواست، همه هدرهای پاسخ (به‌جز کوکی) و بدنه** را برای عیب‌یابی نگه می‌دارد؛
-  بدنه‌ی HTML به‌عنوان JSON فرض نمی‌شود. هدر `Cache-Control` غیرضروری حذف شد. تابع `diagnose()` برای «تشخیص اتصال» اضافه شد.
-- `lib/widgets/common.dart`: پیام مخصوص ۴۰۳ و دکمه‌ی «تشخیص اتصال» داخل جعبه‌ی خطا (بدون تغییر طراحی صفحه‌ها).
-- `lib/data/repositories/booking_repository.dart`, `lib/state/app_state.dart`, `lib/core/i18n/app_strings.dart`: اتصال دکمه و متن‌ها.
-- `lib/data/api/response_parsers.dart`: زمان هر ساعت زیر هر کلیدی خوانده می‌شود (فیلد `free` همچنان وضعیت را تعیین می‌کند)؛ نام فارسی/انگلیسی با الگوهای `*_fa/*_en/fa_*/en_*` تشخیص داده می‌شود.
-- `test/api_client_test.dart` (جدید) و `test/fake_repository.dart`.
+The reported app failure was reproduced exactly when the request used a `User-Agent` containing `RayanGarden`:
 
-## «تشخیص اتصال» چیست؟
-در صفحه‌ی خطا (خطای سرور یا شبکه) دکمه‌ی «تشخیص اتصال» چهار درخواست GET فقط‌خواندنی به `services.php` می‌فرستد (بدون دنبال‌کردن ریدایرکت):
-A) درخواست معمول اپ، B) هدرهای پیش‌فرض کتابخانه، C) فقط `Accept: */*`، D) همان آدرس با/بدون `www`.
-نتیجه (status، هدر `server`، `location`، ابتدای بدنه) قابل انتخاب و کپی است. اگر A و C ۴۰۳ و B یا D موفق باشند، علت فیلتر هدر/UA یا میزبان است؛
-اگر همه ۴۰۳ باشند، بلاک سطح IP/منطقه یا قانون کلی WAF است. **این خروجی را برایم بفرستید تا علت قطعی مشخص و اصلاح شود.**
+```text
+User-Agent: RayanGardenApp/1.0 (Android) → HTTP 403 HTML
+User-Agent: RayanGardenApp/1.0.1 (Android) → HTTP 403 HTML
+User-Agent: RayanGarden/1.0 Android → HTTP 403 HTML
+User-Agent: Dart/3.0 (dart:io) → HTTP 200 for services.php
+User-Agent: Mozilla/5.0 → HTTP 200 for services.php
+No custom User-Agent → HTTP 200 for services.php
+```
 
-## متن پیشنهادی برای مدیر هاست (irwebspace) — هیچ تغییری را خودم انجام نداده‌ام
-> درخواست‌های GET برنامه‌ی اندرویدی ما به `https://rayangarden.com/api/services.php` و `https://rayangarden.com/api/availability.php` و POST به `/api/book.php` با HTTP 403 رد می‌شوند، در حالی که همان آدرس‌ها در مرورگر گوشی کار می‌کنند.
-> لطفاً لاگ ModSecurity/WAF/Imunify360 را برای این مسیرها و IP مشتری در بازه‌ی تست بررسی کنید و بگویید کدام قانون (Rule ID) درخواست را مسدود کرده است.
-> برنامه خودش را با `User-Agent: RayanGardenApp/1.0 (Android)` و هدر `Accept: application/json` معرفی می‌کند.
-> لطفاً مسیر `/api/*.php` را برای درخواست‌های API (یا برای این User-Agent) از قانون مسدودکننده مستثنی کنید، بدون خاموش‌کردن کامل فایروال.
+The same User-Agent behavior was observed for `services.php`, `availability.php`, and `book.php`. This proves the immediate trigger is a server-side Nginx/WAF rule matching the application identifier, not a wrong URL, TLS problem, bad JSON parser, or unavailable endpoint.
 
-اطلاعات لازم برای مدیر هاست: زمان دقیق تست، IP عمومی گوشی، آدرس‌ها بالا، هدرهای بالا، و (اگر ممکن است) خروجی «تشخیص اتصال».
+## Client-side correction implemented
 
-## فرضیه‌های دیگر که فقط خروجی بالا رد/تأیید می‌کند
-- بلاک جغرافیایی/IP (مثلاً اینترنت همراه در برابر Wi-Fi): تست روی دو شبکه‌ی مختلف.
-- نیاز endpoint به هدر/Referer مخصوص (مثلاً ضدربات): فقط مدیر سایت می‌تواند تأیید کند؛ اپ چنین قانونی را حدس نمی‌زند.
+`lib/data/api/api_client.dart` no longer sends `RayanGardenApp/1.0 (Android)`. It uses the accepted Dart client identity:
+
+```text
+Dart/3.0 (dart:io)
+```
+
+A regression test verifies that the blocked `RayanGarden` identifier is not sent. Customer-facing error cards no longer expose raw HTML, headers, request URLs, or technical diagnostic output. Users receive a localized recovery message and a retry action.
+
+## Production-server limitation
+
+No SSH, SFTP, hosting-panel, Nginx, WAF, PHP, or database credentials were available in the authorized environment. Therefore, no production server files, logs, PHP code, Nginx rules, WAF rules, or customer data were modified or accessed.
+
+The permanent server-side remediation still needs to be performed by the hosting administrator:
+
+1. Inspect Nginx, ModSecurity/WAF, and hosting-security logs for the matching rule ID.
+2. Allow the app’s API requests for `/api/*.php` or permit a documented application identifier.
+3. Keep directory listing disabled and preserve the existing firewall protections.
+4. Verify GET services, GET availability, and POST book requests from an Android network after the rule change.
+
+Do not disable the WAF globally and do not whitelist an entire IP range without reviewing the matching rule.
+
+## Live API observations requiring backend-owner confirmation
+
+The live service response currently reports:
+
+- `wedding`: duration 180 minutes
+- `formality`: duration 180 minutes
+- `kids`: duration 60 minutes
+- `family`: duration 60 minutes
+- `cafe`: duration 120 minutes
+- `gateway`: false
+- price and deposit: zero for the observed services
+
+The app preserves the server’s duration and payment values rather than silently overriding production booking rules. The requested 120-minute bride-and-groom duration and a real deposit payment workflow require a backend/API owner decision and cannot be safely fabricated in the Android client.

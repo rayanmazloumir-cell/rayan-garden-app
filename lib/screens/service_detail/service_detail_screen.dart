@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../data/models/service_catalog.dart';
 import '../../state/app_scope.dart';
 import '../../widgets/common.dart';
 import '../calendar/calendar_screen.dart';
@@ -19,9 +20,14 @@ class ServiceDetailScreen extends StatelessWidget {
       );
     }
     final minutes = state.durationOf(service);
+    final imageAsset = ServiceCatalog.imageFor(service);
     final description = (service.description != null && service.description!.isNotEmpty)
         ? service.description!
         : state.tr('detail_default_desc');
+    final paymentRows = [
+      if (_isAmount(service.price)) '${state.tr('detail_price')}: ${state.digits(service.price!)}',
+      if (_isAmount(service.deposit)) '${state.tr('detail_deposit')}: ${state.digits(service.deposit!)}',
+    ];
 
     return StepScaffold(
       title: state.tr('detail_title'),
@@ -36,6 +42,12 @@ class ServiceDetailScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
         children: [
+          if (imageAsset != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(26),
+              child: SizedBox(height: 190, child: Image.asset(imageAsset, fit: BoxFit.cover)),
+            ),
+          if (imageAsset != null) const SizedBox(height: 14),
           AppCard(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -64,12 +76,7 @@ class ServiceDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ],
-                for (final row in [
-                  if (service.price != null)
-                    '${state.tr('detail_price')}: ${state.digits(service.price!)}',
-                  if (service.deposit != null)
-                    '${state.tr('detail_deposit')}: ${state.digits(service.deposit!)}',
-                ]) ...[
+                for (final row in paymentRows) ...[
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -81,6 +88,10 @@ class ServiceDetailScreen extends StatelessWidget {
                               color: AppColors.ink, fontWeight: FontWeight.w700)),
                     ],
                   ),
+                ],
+                if (paymentRows.isEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(state.tr('detail_payment_pending'), style: TextStyle(color: AppColors.muted, height: 1.6, fontSize: 13)),
                 ],
                 const SizedBox(height: 18),
                 Text(
@@ -105,3 +116,5 @@ class ServiceDetailScreen extends StatelessWidget {
     );
   }
 }
+
+bool _isAmount(String? value) => value != null && value.replaceAll(',', '').trim() != '0' && value.trim().isNotEmpty;

@@ -57,12 +57,14 @@ class AppStrings {
     'services_hours': 'هر روز حتی جمعه‌ها · {from} تا {to}',
     'services_backend_note': 'ساعت‌های آزاد و جلوگیری از رزرو هم‌زمان توسط سامانه اصلی و API وب‌سایت کنترل می‌شود.',
     'service_payment_available': 'امکان ثبت بیعانه طبق پاسخ سامانه',
+    'service_payment_pending': 'جزئیات بیعانه پس از هماهنگی اعلام می‌شود',
     'services_empty': 'در حال حاضر خدمتی برای نمایش وجود ندارد.',
     'detail_title': 'جزئیات خدمت',
     'detail_duration': 'مدت زمان',
     'detail_about': 'توضیحات',
     'detail_price': 'قیمت',
     'detail_deposit': 'بیعانه',
+    'detail_payment_pending': 'در حال حاضر مبلغ یا درگاه پرداختی از سامانه اعلام نشده است؛ هماهنگی پرداخت پس از ثبت درخواست انجام می‌شود.',
     'detail_default_desc':
         'برای مشاهده ساعت‌های آزاد و ثبت رزرو این خدمت ادامه دهید.',
     'detail_book': 'رزرو این خدمت',
@@ -147,13 +149,10 @@ class AppStrings {
         'اتصال به سرور برقرار نشد. اینترنت خود را بررسی کنید و دوباره تلاش کنید.',
     'err_timeout': 'پاسخ سرور طولانی شد. لطفاً دوباره تلاش کنید.',
     'err_server': 'سرور نتوانست درخواست را انجام دهد. لطفاً کمی بعد دوباره تلاش کنید.',
+    'error_recovery_hint': 'لطفاً اتصال اینترنت را بررسی کنید و دوباره تلاش کنید. اگر مشکل ادامه داشت، با باغ تماس بگیرید.',
     'err_format':
         'پاسخ سرور قابل‌تشخیص نبود. اگر در حال ثبت رزرو بودید، رزرو انجام‌شده در نظر گرفته نمی‌شود؛ لطفاً با ما تماس بگیرید.',
-    'err_details': 'جزئیات فنی',
-    'err_forbidden':
-        'درخواست برنامه توسط سرور یا فایروال هاست رد شد (HTTP 403). جزئیات فنی یا «تشخیص اتصال» را برای مدیر هاست بفرستید.',
-    'diag_button': 'تشخیص اتصال',
-    'diag_running': 'در حال بررسی…',
+    'err_forbidden': 'دسترسی موقتاً برقرار نشد. لطفاً دوباره تلاش کنید یا با باغ تماس بگیرید.',
   };
 
   static const Map<String, String> en = {
@@ -199,12 +198,14 @@ class AppStrings {
     'services_hours': 'Every day, including Fridays · {from} to {to}',
     'services_backend_note': 'Availability and double-booking prevention are controlled by the website system and its existing API.',
     'service_payment_available': 'Deposit support follows the server response',
+    'service_payment_pending': 'Deposit details will be provided after coordination',
     'services_empty': 'No services are available right now.',
     'detail_title': 'Service details',
     'detail_duration': 'Duration',
     'detail_about': 'About',
     'detail_price': 'Price',
     'detail_deposit': 'Deposit',
+    'detail_payment_pending': 'The live system currently reports no amount or payment gateway; payment coordination follows the booking request.',
     'detail_default_desc':
         'Continue to see the available times and book this service.',
     'detail_book': 'Book this service',
@@ -282,12 +283,9 @@ class AppStrings {
         'Could not reach the server. Check your internet connection and try again.',
     'err_timeout': 'The server took too long to respond. Please try again.',
     'err_server': 'The server could not complete the request. Please try again shortly.',
+    'error_recovery_hint': 'Check your internet connection and try again. If the problem continues, please contact the garden.',
     'err_format':
         'The server response was not recognized. If you were submitting a booking, it is NOT considered made; please contact us.',
-    'err_details': 'Technical details',
-    'err_forbidden':
-        'The request was refused by the server or the host firewall (HTTP 403). Send the technical details or the "Connection check" result to the host administrator.',
-    'diag_button': 'Connection check',
-    'diag_running': 'Checking…',
+    'err_forbidden': 'Access was temporarily unavailable. Please try again or contact the garden.',
   };
 }

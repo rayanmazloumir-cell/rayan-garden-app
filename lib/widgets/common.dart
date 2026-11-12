@@ -134,9 +134,9 @@ class LoadingView extends StatelessWidget {
 
 /// Friendly text for an [ApiException] in the current language.
 String describeError(AppState state, ApiException e) {
-  final server = e.serverMessage;
-  if (server != null && server.isNotEmpty) return server;
   if (e.statusCode == 403) return state.tr('err_forbidden');
+  final server = e.serverMessage;
+  if (server != null && server.isNotEmpty && !const {'bad', 'method', 'server', 'forbidden'}.contains(server.toLowerCase().trim())) return server;
   switch (e.kind) {
     case ApiErrorKind.network:
       return state.tr('err_network');
@@ -159,7 +159,6 @@ class ErrorBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
-    final raw = error.rawBody;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
@@ -185,81 +184,13 @@ class ErrorBox extends StatelessWidget {
               ),
             ],
           ),
-          if (raw != null && raw.isNotEmpty || error.statusCode != null)
-            Theme(
-              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                title: Text(state.tr('err_details'),
-                    style: const TextStyle(fontSize: 12)),
-                children: [
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: SelectableText(
-                      'HTTP ${error.statusCode ?? '-'}\n${raw ?? ''}',
-                      textDirection: TextDirection.ltr,
-                      style: const TextStyle(fontSize: 11, height: 1.5),
-                    ),
-                  ),
-                ],
-              ),
+          if (error.kind == ApiErrorKind.server || error.kind == ApiErrorKind.network)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(state.tr('error_recovery_hint'), style: TextStyle(color: AppColors.ink.withAlpha(175), fontSize: 12, height: 1.6)),
             ),
-          if (error.kind == ApiErrorKind.server ||
-              error.kind == ApiErrorKind.network)
-            const _DiagnoseBlock(),
         ],
       ),
-    );
-  }
-}
-
-/// Runs the read-only connection check and shows its result as selectable text.
-class _DiagnoseBlock extends StatefulWidget {
-  const _DiagnoseBlock();
-
-  @override
-  State<_DiagnoseBlock> createState() => _DiagnoseBlockState();
-}
-
-class _DiagnoseBlockState extends State<_DiagnoseBlock> {
-  bool _running = false;
-  String? _result;
-
-  Future<void> _run() async {
-    final state = AppScope.read(context);
-    setState(() => _running = true);
-    String text;
-    try {
-      text = await state.runDiagnostics();
-    } catch (e) {
-      text = e.runtimeType.toString();
-    }
-    if (!mounted) return;
-    setState(() {
-      _running = false;
-      _result = text;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final state = AppScope.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextButton.icon(
-          onPressed: _running ? null : _run,
-          icon: const Icon(Icons.network_check_rounded, size: 18),
-          label: Text(
-              _running ? state.tr('diag_running') : state.tr('diag_button')),
-        ),
-        if (_result != null)
-          SelectableText(
-            _result!,
-            textDirection: TextDirection.ltr,
-            style: const TextStyle(fontSize: 11, height: 1.5),
-          ),
-      ],
     );
   }
 }

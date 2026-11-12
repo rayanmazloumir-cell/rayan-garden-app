@@ -21,3 +21,8 @@ flutter:
   assets:
     - assets/images/rayan_garden_home.png
     - assets/images/rayan_garden_logo.jpg
+    - assets/images/service_wedding.jpg
+    - assets/images/service_formality.jpg
+    - assets/images/service_children.jpg
+    - assets/images/service_family.jpg
+    - assets/images/service_cafe.jpg

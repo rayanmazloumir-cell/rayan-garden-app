@@ -20,6 +20,11 @@ void main() {
       await api.get('services.php');
       expect(seen.method, 'GET');
       expect(seen.url.toString(), 'https://rayangarden.com/api/services.php');
+      final userAgent = seen.headers.entries
+          .firstWhere((e) => e.key.toLowerCase() == 'user-agent')
+          .value;
+      expect(userAgent, 'Dart/3.0 (dart:io)');
+      expect(userAgent, isNot(contains('RayanGarden')));
     });
 
     test('availability.php query matches the browser URL', () async {

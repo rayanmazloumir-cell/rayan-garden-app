@@ -24,9 +24,11 @@ class ApiClient {
         _base = baseUrl ?? AppConfig.apiBase,
         _timeout = timeout ?? AppConfig.requestTimeout;
 
-  // An honest, distinctive User-Agent (the app's own name) so the host can
-  // identify and allow-list the app. It is deliberately NOT a browser string.
-  static const String _userAgent = 'RayanGardenApp/1.0 (Android)';
+  // The production Nginx/WAF currently returns 403 for User-Agent values
+  // containing "RayanGarden". Let package:http use its normal Dart client
+  // identity instead of sending a blocked custom identifier. Server-side
+  // allow-listing should be added when production access is available.
+  static const String _userAgent = 'Dart/3.0 (dart:io)';
   static const Map<String, String> _getHeaders = {
     'Accept': 'application/json',
     'User-Agent': _userAgent,

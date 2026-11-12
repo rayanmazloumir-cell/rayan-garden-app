@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/service_item.dart';
+import '../../data/models/service_catalog.dart';
 import '../../state/app_scope.dart';
 import '../../widgets/common.dart';
 import '../service_detail/service_detail_screen.dart';
@@ -88,6 +89,7 @@ class _ServiceCard extends StatelessWidget {
     final state = AppScope.of(context);
     final icons = [Icons.favorite_border_rounded, Icons.auto_awesome_rounded, Icons.child_care_rounded, Icons.groups_rounded, Icons.local_cafe_rounded];
     final minutes = state.durationOf(service);
+    final hasPayment = _isAmount(service.price) || _isAmount(service.deposit);
     return AppCard(
       onTap: () {
         state.selectService(service);
@@ -98,7 +100,14 @@ class _ServiceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         child: Row(
           children: [
-            Container(width: 76, height: 126, color: index.isEven ? AppColors.darkGreen : AppColors.forest, child: Icon(icons[index % icons.length], color: AppColors.goldLight, size: 29)),
+            Container(
+              width: 76,
+              height: 126,
+              color: index.isEven ? AppColors.darkGreen : AppColors.forest,
+              child: ServiceCatalog.imageFor(service) == null
+                  ? Icon(icons[index % icons.length], color: AppColors.goldLight, size: 29)
+                  : Image.asset(ServiceCatalog.imageFor(service)!, fit: BoxFit.cover),
+            ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
@@ -108,7 +117,8 @@ class _ServiceCard extends StatelessWidget {
                     Row(children: [Expanded(child: Text(service.displayName(state.isFa), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.darkGreen, fontSize: 16, fontWeight: FontWeight.w900))), Icon(forwardIcon(context), color: AppColors.gold)]),
                     const SizedBox(height: 8),
                     if (minutes != null) Row(children: [const Icon(Icons.schedule_rounded, size: 16, color: AppColors.gold), const SizedBox(width: 5), Text(state.digits(state.tr('duration_min', {'n': '$minutes'})), style: const TextStyle(color: AppColors.muted, fontSize: 12, fontWeight: FontWeight.w700))]),
-                    if (service.deposit != null || service.price != null) ...[const SizedBox(height: 7), Text(state.tr('service_payment_available'), style: const TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.w700))],
+                    const SizedBox(height: 7),
+                    Text(state.tr(hasPayment ? 'service_payment_available' : 'service_payment_pending'), style: TextStyle(color: hasPayment ? AppColors.success : AppColors.muted, fontSize: 11, fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
@@ -119,3 +129,5 @@ class _ServiceCard extends StatelessWidget {
     );
   }
 }
+
+bool _isAmount(String? value) => value != null && value.replaceAll(',', '').trim() != '0' && value.trim().isNotEmpty;

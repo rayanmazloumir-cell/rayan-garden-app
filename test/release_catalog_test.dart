@@ -32,4 +32,23 @@ void main() {
       'Cafe-Garden',
     ]));
   });
+
+  test('live API service IDs map to the correct customer-facing catalog entries', () {
+    const live = [
+      ServiceItem(id: 'wedding', name: 'عکاسی عروس و داماد', durationMinutes: 180),
+      ServiceItem(id: 'formality', name: 'عکاسی فرمالیته', durationMinutes: 180),
+      ServiceItem(id: 'kids', name: 'عکاسی کودک', durationMinutes: 60),
+      ServiceItem(id: 'family', name: 'عکاسی خانوادگی', durationMinutes: 60),
+      ServiceItem(id: 'cafe', name: 'کافه باغ', durationMinutes: 120),
+    ];
+    final mapped = ServiceCatalog.decorate(live);
+    expect(mapped.map((item) => item.nameEn).toList(), [
+      'Bride & Groom Photography',
+      'Formal Photography',
+      'Children Photography',
+      'Family Photography',
+      'Cafe-Garden',
+    ]);
+    expect(mapped.map((item) => item.durationMinutes).toList(), [180, 180, 60, 60, 120]);
+  });
 }

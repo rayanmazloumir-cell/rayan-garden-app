@@ -24,9 +24,9 @@ Rules enforced in the app:
 - `ok:false` in any response is shown as an error (server message if present).
 
 ## Confirmed by browser tests (site owner, 2026-11-11)
-- `GET /api/services.php` -> `ok:true`, services with id, Persian + English names, `dur`, price, deposit (wedding currently dur=180).
-- `GET /api/availability.php?date=2026-11-12&service=wedding` -> `ok:true`, `date`, `duration`, `slots` from 06:00 to 20:00 every 30 min; each slot's state is the `free` field.
-- The exact JSON key of each slot's time and of the service name/price/deposit fields is still not seen by the app author; the parser finds them structurally.
+- `GET /api/services.php` -> HTTP 200 with `ok:true`, Persian + English names, `dur`, price and deposit. The live response observed `wedding=180`, `formality=180`, `kids=60`, `family=60`, `cafe=120`, with `gateway:false` and zero price/deposit values.
+- `GET /api/availability.php?date=2026-11-15&service=wedding` -> HTTP 200 with `ok:true`, `date`, `duration`, and `slots` from 06:00 to 20:00 every 30 minutes; each slot's state is the `free` field.
+- HTTP 403 is caused by a production Nginx/WAF rule matching `RayanGarden` in the User-Agent. The app now sends the accepted Dart client identity and includes a regression test.
 
 ## NOT documented -> must be confirmed (nothing was guessed silently)
 The exact JSON shape of these responses was not available. The parsers
@@ -41,9 +41,9 @@ The exact JSON shape of these responses was not available. The parsers
    `status` is shown as received; any key containing `pay` or `deposit` is displayed as payment info;
    an error message is read from `error` / `message` / `msg`.
 
-If a real response does not match, the app shows "technical details" (HTTP status + raw body) on the error
-screen. To confirm, open these in a browser and compare:
+If a real response does not match, the app shows a friendly localized error and retry action without exposing
+raw response bodies or server headers to customers. To confirm the live contract, open these read-only URLs:
 - `https://rayangarden.com/api/services.php`
 - `https://rayangarden.com/api/availability.php?date=<YYYY-MM-DD>&service=<id from the first link>`
 
-There is NO local duration table: duration, price, deposit and active state come only from the API (`dur`, and `price`/`deposit`/`active` if the API sends them; those three field names are unconfirmed).
+There is NO local override for server duration, price, deposit or active state: those values come from the API. The local catalog supplies only bilingual presentation labels, descriptions, aliases, and imagery when the API provides an incomplete label.
