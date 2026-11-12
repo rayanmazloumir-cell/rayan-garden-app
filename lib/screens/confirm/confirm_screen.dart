@@ -40,15 +40,17 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
     final date = state.date;
     final slot = state.slot;
     final minutes = service == null ? null : state.durationOf(service);
+    final hasPrice = _isAmount(service?.price);
+    final hasDeposit = _isAmount(service?.deposit);
 
     final rows = <MapEntry<String, String>>[
       MapEntry(state.tr('confirm_service'), service?.displayName(state.isFa) ?? ''),
       if (minutes != null)
         MapEntry(state.tr('confirm_duration'),
             state.digits(state.tr('duration_min', {'n': '$minutes'}))),
-      if (service?.price != null)
+      if (hasPrice)
         MapEntry(state.tr('detail_price'), state.digits(service!.price!)),
-      if (service?.deposit != null)
+      if (hasDeposit)
         MapEntry(state.tr('detail_deposit'), state.digits(service!.deposit!)),
       MapEntry(
         state.tr('confirm_date'),
@@ -61,6 +63,8 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
       MapEntry(state.tr('confirm_phone'), state.digits(state.phone)),
       MapEntry(state.tr('confirm_notes'),
           state.notes.isEmpty ? state.tr('confirm_none') : state.notes),
+      if (!hasPrice && !hasDeposit)
+        MapEntry(state.tr('detail_deposit'), state.tr('confirm_payment_pending')),
     ];
 
     return StepScaffold(
@@ -153,3 +157,5 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
     );
   }
 }
+
+bool _isAmount(String? value) => value != null && value.replaceAll(',', '').trim() != '0' && value.trim().isNotEmpty;

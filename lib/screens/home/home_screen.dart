@@ -6,6 +6,7 @@ import '../../state/app_scope.dart';
 import '../../widgets/common.dart';
 import '../about/about_screen.dart';
 import '../contact/contact_screen.dart';
+import '../garden_tour/garden_tour_screen.dart';
 import '../services/services_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -78,6 +79,8 @@ class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 24), child: Column(children: [
         ElevatedButton.icon(onPressed: () { state.resetBooking(); Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ServicesScreen())); }, icon: const Icon(Icons.calendar_month_rounded), label: Text(state.tr('home_book'))),
+        const SizedBox(height: 10),
+        OutlinedButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const GardenTourScreen())), icon: const Icon(Icons.view_carousel_rounded), label: Text(state.tr('home_explore_garden'))),
         const SizedBox(height: 10),
         Row(children: [
           Expanded(child: OutlinedButton.icon(onPressed: () => openExternal(context, Uri(scheme: 'tel', path: AppConfig.phone)), icon: const Icon(Icons.phone_in_talk_rounded, size: 19), label: Text(state.tr('home_call')))),
