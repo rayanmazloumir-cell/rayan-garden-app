@@ -55,6 +55,7 @@ class AppStrings {
     'tour_subtitle': 'فضای واقعی رایان گاردن را با عکس‌های ثبت‌شده از باغ و کافه ببینید.',
     'tour_real_assets_note': 'این گشت از تصاویر واقعی رایان گاردن استفاده می‌کند. برای ساخت یک تجربه سه‌بعدی واقعی، فایل مدل یا ویدیوی ۳۶۰ درجه هنوز لازم است.',
     'tour_selected': 'موقعیت انتخاب‌شده: {location}',
+    'tour_3d_hint': 'برای دیدن عمق و چرخش، کارت‌ها را بکشید',
     'tour_hero': 'نمای کلی باغ',
     'tour_wedding': 'فضای عکاسی عروس و داماد',
     'tour_formal': 'فضای عکاسی رسمی',
@@ -152,7 +153,7 @@ class AppStrings {
     'contact_instagram': 'اینستاگرام',
     'contact_address_label': 'نشانی',
     'contact_address':
-        'مازندران، آمل، کیلومتر ۱۲ جاده هراز، بعد از رستوران آریا، رزکه، ۲۰۰ متر بعد از پاسگاه جنگلبانی، جاده امامزاده هجده تن',
+        'مازندران، آمل، کیلومتر ۱۲ جاده هراز، بعد از رستوران آریا، رزکه، جاده امامزاده هجده تن، ۲۰۰ متر بعد از ایست جنگلبانی',
     'contact_hours': 'برای هماهنگی ساعت‌های رزرو، از بخش رزرو آنلاین استفاده کنید.',
     'contact_copy_address': 'کپی نشانی',
     'contact_copied': 'نشانی کپی شد.',
@@ -210,6 +211,7 @@ class AppStrings {
     'tour_subtitle': 'Explore Rayan Garden through real photographs of the garden and café.',
     'tour_real_assets_note': 'This tour uses real Rayan Garden imagery. A genuine 3D experience still requires an original model or 360-degree walkthrough video.',
     'tour_selected': 'Selected location: {location}',
+    'tour_3d_hint': 'Swipe cards to explore depth and perspective',
     'tour_hero': 'Garden overview',
     'tour_wedding': 'Bride & groom area',
     'tour_formal': 'Formal photography area',
@@ -300,7 +302,7 @@ class AppStrings {
     'contact_instagram': 'Instagram',
     'contact_address_label': 'Address',
     'contact_address':
-        'Mazandaran, Amol, km 12 of Haraz Road, after Aria Restaurant, Razakeh, 200 m past the forestry guard post, Imamzadeh Hejdah Tan road',
+        'Mazandaran, Amol, Km 12 Haraz Road, after Aria Restaurant, Razakeh, Emamzadeh Hejdah Tan Road, 200m after Forestry Station',
     'contact_hours': 'Use online booking to see the available times.',
     'contact_copy_address': 'Copy address',
     'contact_copied': 'Address copied.',

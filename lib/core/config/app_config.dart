@@ -5,8 +5,8 @@ class AppConfig {
 
   static const String apiBase = 'https://rayangarden.com/api/';
   static const Duration requestTimeout = Duration(seconds: 20);
-  static const String appVersion = '1.0.4';
-  static const int buildNumber = 5;
+  static const String appVersion = '1.0.6';
+  static const int buildNumber = 6;
   static const String versionLabel = '$appVersion+$buildNumber';
   static const int maxAheadDays = 120;
   static const String openingTime = '06:00';
