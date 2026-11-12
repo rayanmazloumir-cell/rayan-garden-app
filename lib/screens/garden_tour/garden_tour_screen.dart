@@ -140,9 +140,12 @@ class _GardenTourScreenState extends State<GardenTourScreen> {
               children: [
                 const Icon(Icons.swipe_rounded, size: 17, color: AppColors.gold),
                 const SizedBox(width: 7),
-                Text(
-                  state.tr('tour_3d_hint'),
-                  style: TextStyle(color: AppColors.ink.withAlpha(165), fontSize: 12),
+                Flexible(
+                  child: Text(
+                    state.tr('tour_3d_hint'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.ink.withAlpha(165), fontSize: 12),
+                  ),
                 ),
               ],
             ),
