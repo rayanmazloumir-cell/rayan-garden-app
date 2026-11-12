@@ -19,7 +19,7 @@ void main() {
     expect(find.text('نمای کلی باغ'), findsWidgets);
     expect(find.textContaining('تصاویر واقعی رایان گاردن'), findsOneWidget);
 
-    await tester.tap(find.text('کافه‌باغ'));
+    await tester.drag(find.byType(PageView), const Offset(-320, 0));
     await tester.pumpAndSettle();
     expect(find.textContaining('موقعیت انتخاب‌شده:'), findsOneWidget);
   });
