@@ -43,7 +43,7 @@ class _TopBar extends StatelessWidget {
           Container(width: 51, height: 51, padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppColors.darkGreen, borderRadius: BorderRadius.circular(17)), child: ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.asset('assets/images/rayan_garden_logo.jpg', fit: BoxFit.contain))),
           const SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(state.tr('app_name'), style: const TextStyle(color: AppColors.darkGreen, fontSize: 20, fontWeight: FontWeight.w900)), const SizedBox(height: 2), Text(state.tr('home_overline'), style: const TextStyle(color: AppColors.gold, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.w800))])),
-          IconButton(onPressed: state.toggleLanguage, tooltip: state.tr('lang_switch'), icon: const Icon(Icons.translate_rounded, color: AppColors.darkGreen)),
+          TextButton.icon(onPressed: state.toggleLanguage, icon: const Icon(Icons.translate_rounded, color: AppColors.darkGreen, size: 18), label: Text(state.tr('lang_switch'), style: const TextStyle(color: AppColors.darkGreen, fontWeight: FontWeight.w900))),
           IconButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AboutScreen())), tooltip: state.tr('about_title'), icon: const Icon(Icons.tune_rounded, color: AppColors.darkGreen)),
         ]),
       );
