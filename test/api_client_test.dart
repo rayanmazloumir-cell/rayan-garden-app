@@ -39,7 +39,8 @@ void main() {
     test('an HTML 403 is an HTTP error with evidence kept, never JSON', () async {
       final api = ApiClient(client: MockClient((req) async => http.Response(
           '<html><body><h1>Forbidden</h1></body></html>', 403,
-          headers: {'server': 'Apache', 'content-type': 'text/html'})));
+          headers: {'server': 'Apache', 'content-type': 'text/html'},
+          request: req)));
       try {
         await api.get('services.php');
         fail('should throw');
@@ -54,7 +55,9 @@ void main() {
 
     test('a JSON 403 keeps the server message', () async {
       final api = ApiClient(client: MockClient((req) async =>
-          http.Response(jsonEncode({'ok': false, 'error': 'ممنوع'}), 403)));
+          http.Response.bytes(
+              utf8.encode(jsonEncode({'ok': false, 'error': 'ممنوع'})), 403,
+              request: req)));
       try {
         await api.get('services.php');
         fail('should throw');
