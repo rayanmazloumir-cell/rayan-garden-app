@@ -35,8 +35,6 @@ class AboutScreen extends StatelessWidget {
               _InfoRow(icon: Icons.verified_outlined, label: state.tr('about_version'), value: AppConfig.versionLabel),
               const Divider(height: 26),
               _InfoRow(icon: Icons.schedule_rounded, label: state.tr('about_hours'), value: '${AppConfig.openingTime} – ${AppConfig.closingTime}'),
-              const Divider(height: 26),
-              _InfoRow(icon: Icons.language_rounded, label: state.tr('about_language'), value: state.isFa ? 'فارسی · راست‌چین' : 'English · LTR'),
             ]),
           ),
           const SizedBox(height: 16),
