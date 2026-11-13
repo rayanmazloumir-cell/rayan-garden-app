@@ -5,8 +5,10 @@ import '../../core/theme/app_colors.dart';
 import '../../state/app_scope.dart';
 import '../../widgets/common.dart';
 import '../about/about_screen.dart';
+import '../auth/auth_screen.dart';
 import '../contact/contact_screen.dart';
 import '../garden_tour/garden_tour_screen.dart';
+import '../offers/offers_screen.dart';
 import '../services/services_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -23,6 +25,7 @@ class HomeScreen extends StatelessWidget {
             SliverToBoxAdapter(child: _TopBar(state: state)),
             SliverToBoxAdapter(child: _Hero(state: state)),
             SliverToBoxAdapter(child: _QuickActions(state: state)),
+            SliverToBoxAdapter(child: _OffersBanner(state: state)),
             SliverToBoxAdapter(child: _SectionHeading(title: state.tr('home_services_title'), action: state.tr('home_view_all'))),
             SliverToBoxAdapter(child: _ServiceHighlights(state: state)),
             SliverToBoxAdapter(child: _ExperienceCard(state: state)),
@@ -122,4 +125,39 @@ class _FooterLinks extends StatelessWidget {
   final dynamic state;
   @override
   Widget build(BuildContext context) => Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 30), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [TextButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AboutScreen())), icon: const Icon(Icons.info_outline_rounded, size: 18), label: Text(state.tr('about_title'))), const SizedBox(width: 8), Text('v${AppConfig.versionLabel}', style: const TextStyle(color: AppColors.muted, fontSize: 11))]));
+}
+
+
+class _OffersBanner extends StatelessWidget {
+  const _OffersBanner({required this.state});
+  final dynamic state;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+        child: AppCard(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const OffersScreen())),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(width: 42, height: 42, decoration: BoxDecoration(color: AppColors.darkGreen, borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.local_offer_rounded, color: AppColors.goldLight)),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(state.tr('home_offers'), style: const TextStyle(color: AppColors.darkGreen, fontSize: 17, fontWeight: FontWeight.w900))),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.gold),
+                ],
+              ),
+              const SizedBox(height: 11),
+              Text(state.tr('home_vip_banner'), style: const TextStyle(color: AppColors.ink, height: 1.65, fontSize: 13)),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AuthScreen())),
+                icon: const Icon(Icons.workspace_premium_rounded, size: 18),
+                label: Text(state.tr('home_join_vip')),
+              ),
+            ],
+          ),
+        ),
+      );
 }

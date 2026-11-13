@@ -49,6 +49,28 @@ class AboutScreen extends StatelessWidget {
               Row(children: [const Icon(Icons.cloud_done_outlined, color: AppColors.success), const SizedBox(width: 8), Expanded(child: Text(state.tr('about_backend_preserved'), style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w700)))]),
             ]),
           ),
+          const SizedBox(height: 16),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(state.tr('about_local_backend_title'), style: const TextStyle(color: AppColors.darkGreen, fontSize: 17, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 7),
+                Text(state.tr('about_local_backend_body'), style: const TextStyle(color: AppColors.ink, height: 1.65, fontSize: 13)),
+                const SizedBox(height: 12),
+                Text(state.tr('about_registered_count', {'n': '${state.localBackend.customers.length}'}), style: const TextStyle(color: AppColors.muted, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final result = state.sendLocalPromotionalSms();
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.tr('about_sms_sent', {'n': '${result.recipientCount}'}))));
+                  },
+                  icon: const Icon(Icons.sms_rounded),
+                  label: Text(state.tr('about_send_sms')),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 20),
           OutlinedButton.icon(onPressed: state.toggleLanguage, icon: const Icon(Icons.translate_rounded), label: Text(state.tr('about_switch_language'))),
         ],

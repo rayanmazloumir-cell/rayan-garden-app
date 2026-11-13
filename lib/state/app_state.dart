@@ -13,6 +13,7 @@ import '../data/models/service_catalog.dart';
 import '../data/models/service_item.dart';
 import '../data/models/slot_time.dart';
 import '../data/repositories/booking_repository.dart';
+import '../data/local/local_simulated_backend.dart';
 import 'loadable.dart';
 
 /// Holds language and the whole booking flow. UI-free and unit-testable.
@@ -22,6 +23,37 @@ class AppState extends ChangeNotifier {
 
   final BookingRepository repository;
   final DateTime Function() _clock;
+  late final LocalSimulatedBackend localBackend = LocalSimulatedBackend(clock: _clock);
+  LocalCustomer? localCustomer;
+  String? localOtpPhone;
+  bool localOtpRequested = false;
+  LocalSmsResult? lastLocalSms;
+
+  List<LocalOffer> get localOffers => LocalSimulatedBackend.offers;
+  bool get isLocalVipMember => localCustomer != null;
+
+  LocalOtpResult requestLocalOtp(String rawPhone) {
+    final result = localBackend.requestOtp(rawPhone);
+    localOtpPhone = normalizePhone(rawPhone);
+    localOtpRequested = true;
+    notifyListeners();
+    return LocalOtpResult(phone: localOtpPhone!, testCode: result.testCode);
+  }
+
+  LocalCustomer verifyLocalOtp({required String name, required String code}) {
+    final phone = localOtpPhone;
+    if (!localOtpRequested || phone == null) throw const FormatException('otp_not_requested');
+    localCustomer = localBackend.verifyOtp(rawPhone: phone, name: name, code: code);
+    localOtpRequested = false;
+    notifyListeners();
+    return localCustomer!;
+  }
+
+  LocalSmsResult sendLocalPromotionalSms() {
+    lastLocalSms = localBackend.sendPromotionalSms();
+    notifyListeners();
+    return lastLocalSms!;
+  }
 
   // ----------------------------- language ----------------------------------
   String lang = 'fa';

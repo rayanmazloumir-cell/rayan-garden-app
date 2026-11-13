@@ -4,10 +4,10 @@ import 'package:rayan_garden/data/models/service_catalog.dart';
 import 'package:rayan_garden/data/models/service_item.dart';
 
 void main() {
-  test('release metadata is 1.0.6 build 6', () {
-    expect(AppConfig.appVersion, '1.0.6');
-    expect(AppConfig.buildNumber, 6);
-    expect(AppConfig.versionLabel, '1.0.6+6');
+  test('release metadata is 1.0.7 build 7', () {
+    expect(AppConfig.appVersion, '1.0.7');
+    expect(AppConfig.buildNumber, 7);
+    expect(AppConfig.versionLabel, '1.0.7+7');
   });
 
   test('service catalog decorates API items without changing IDs', () {
