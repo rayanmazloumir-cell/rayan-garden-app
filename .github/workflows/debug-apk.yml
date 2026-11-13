@@ -1,0 +1,67 @@
+name: Rayan Garden Debug APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android project
+        run: |
+          set -e
+          if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ]; then
+            flutter create --platforms=android --org com.rayangarden --project-name rayan_garden .
+          fi
+          if [ -f test/widget_test.dart ] && grep -q 'MyApp' test/widget_test.dart; then
+            rm test/widget_test.dart
+          fi
+
+      - name: Patch Android manifest and branding
+        run: python3 tool/patch_android.py .
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run tests
+        run: flutter test --reporter expanded
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Collect debug APK
+        run: |
+          set -e
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-debug.apk dist/Rayan-Garden-debug.apk
+          file dist/Rayan-Garden-debug.apk
+          sha256sum dist/Rayan-Garden-debug.apk
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rayan-Garden-Debug-APK
+          path: dist/Rayan-Garden-debug.apk
+          if-no-files-found: error
